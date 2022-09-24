@@ -2,7 +2,10 @@ package notty.servlet;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -32,7 +35,26 @@ public class SaveNoteServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		String whatsend=request.getParameter("whatsend");
+		if(whatsend.equals("list")){
+			//response.getWriter().append("Tra poco avrai la tua lista: ").append(request.getContextPath());
+			Crud crud=new Crud( );
+			ArrayList<NoteBean>noteInDB=new ArrayList<NoteBean>();
+			ServletContext sc=request.getSession().getServletContext();
+			request.getSession().removeAttribute("NOTES");
+			try{
+				noteInDB=crud.listNotes();
+				request.setAttribute("NOTES", noteInDB);
+				RequestDispatcher rd=sc.getRequestDispatcher("/listNote.jsp");
+				rd.forward(request, response);
+			}catch(SQLException s){
+				//TODO: mandare alla pagina error (rendendola più generica)
+			}
+		
+		
+		}
+		
 	}
 
 	/**
@@ -52,8 +74,15 @@ public class SaveNoteServlet extends HttpServlet {
 			Crud crud=new Crud();
 			try {
 				crud.insertNote(note);
+				ServletContext sc=request.getServletContext();
+				RequestDispatcher rd=sc.getRequestDispatcher("/insertok.jsp");
+				rd.forward(request, response);
+				
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
+				ServletContext sc=request.getServletContext();
+				RequestDispatcher rd=sc.getRequestDispatcher("/error.jsp");
+				rd.forward(request, response);
+				
 				e.printStackTrace();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
